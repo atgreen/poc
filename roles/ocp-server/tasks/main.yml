@@ -27,11 +27,31 @@
     - skopeo
   register: install_result
 
+- name: Make sure old mount doesn't exist
+  lineinfile: dest=/etc/fstab
+              state=absent 
+              regexp='vg01-app'
+  register: vg_fix_result
+
+- name: copy docker-storage-setup
+  copy:
+    src: docker-storage-setup
+    dest: /etc/sysconfig/docker-storage-setup
+
+- name: configure docker storage
+  command: docker-storage-setup
+
+- name: Start and enable docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
 - name: Reboot immediately if there was a change.
   shell: "sleep 5 && reboot"
   async: 1
   poll: 0
-  when: upgrade_result is changed or install_result is changed
+  when: vg_fix_result is changed or upgrade_result is changed or install_result is changed
 
 - name: Wait for the reboot to complete if there was a change.
   wait_for_connection:
@@ -39,13 +59,7 @@
     sleep: 5
     delay: 5
     timeout: 300
-  when: upgrade_result is changed or install_result is changed
-
-- name: Start and enable docker
-  service:
-    name: docker
-    state: started
-    enabled: yes
+  when: vg_fix_result is changed or upgrade_result is changed or install_result is changed
 
   
 
