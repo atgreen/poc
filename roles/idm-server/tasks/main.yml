@@ -23,6 +23,4 @@
     - ntp
   notify: reload firewalld
 
-- name: Populate DNS with bootstrap servers
-  shell: (echo {{ poc_password }} | kinit admin) && ipa dnsrecord-add {{ poc_domain }} rhv1 --a-rec 10.0.0.2 && ipa dnsrecord-add {{ greenfield_domain }} rhvm --a-rec 10.0.0.3
 
