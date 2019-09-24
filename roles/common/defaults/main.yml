@@ -1,0 +1,8 @@
+---
+# defaults file for common
+
+selinux: enforcing
+
+##### PACKAGES #####
+default_packages:
+  - wget

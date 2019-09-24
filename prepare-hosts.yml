@@ -1,0 +1,9 @@
+- hosts: content-server
+  roles:
+    - common
+    - content-server
+
+- hosts: idm-server
+  roles:
+    - common
+    - idm-server

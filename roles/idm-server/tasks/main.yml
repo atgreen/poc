@@ -1,0 +1,28 @@
+---
+# tasks file self-hosted RHV installation
+
+- name: Install IdM packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: 
+    - ipa-server
+    - ipa-server-dns
+
+- name: Configure IdM
+  command: ipa-server-install -U --hostname={{ poc_idm_server_fqdn }} --domain={{ poc_domain }} --realm={{ poc_realm }} --no-ntp -a {{ poc_password }} -p {{ poc_password }} --mkhomedir --setup-dns --ssh-trust-dns --forwarder={{ enterprise_dns }} --allow-zone-overlap --no-host-dns creates=/etc/ipa/default.conf
+
+- name: Open firewall ports for IdM
+  firewalld: service={{ item }} permanent=true state=enabled
+  with_items:
+    - https
+    - ldaps
+    - kerberos
+    - kpasswd
+    - dns
+    - ntp
+  notify: reload firewalld
+
+- name: Populate DNS with bootstrap servers
+  shell: (echo {{ poc_password }} | kinit admin) && ipa dnsrecord-add {{ poc_domain }} rhv1 --a-rec 10.0.0.2 && ipa dnsrecord-add {{ greenfield_domain }} rhvm --a-rec 10.0.0.3
+

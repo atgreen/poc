@@ -1,0 +1,36 @@
+---
+# tasks file for preparing the content host
+
+- name: Install NFS and httpd server
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: 
+    - nfs-utils
+    - rpcbind
+    - httpd
+
+- name: Make the /export directory
+  file: path=/export state=directory owner=0 group=0 mode=0775 recurse=yes
+
+- name: Install NFS export file
+  copy: src=ocp.exports dest=/etc/exports.d/ocp.exports
+
+- name: Start and enable NFS
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - nfs
+    - rpcbind
+
+- name: Open firewall ports for NFS and http
+  firewalld: service={{ item }} permanent=true state=enabled
+  with_items:
+    - nfs
+    - http
+  notify: reload firewalld
+  
+
+

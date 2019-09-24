@@ -1,0 +1,19 @@
+---
+# tasks file for common
+
+- name: Configure yum source
+  template:
+    src: poc.repo.j2
+    dest: /etc/yum.repos.d/poc.repo
+    owner: root
+    group: root
+    mode: '0644'
+    
+- name: Install common packages
+  yum: name={{ default_packages }} state=present
+
+- name: configure selinux to {{ selinux }}
+  selinux:
+    policy: targeted
+    state: "{{ selinux }}"
+
