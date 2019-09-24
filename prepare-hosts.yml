@@ -1,9 +1,15 @@
-- hosts: content-server
+- hosts: all
   roles:
     - common
+
+- hosts: content-server
+  roles:
     - content-server
 
 - hosts: idm-server
   roles:
-    - common
     - idm-server
+
+- hosts: ocp-servers
+  roles:
+    - ocp-server

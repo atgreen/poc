@@ -1,0 +1,52 @@
+---
+# tasks file for preparing the content host
+
+- name: upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+  register: upgrade_result
+
+- name: Install critical packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: 
+    - wget
+    - git
+    - net-tools
+    - bind-utils
+    - yum-utils
+    - iptables-services
+    - bridge-utils
+    - bash-completion
+    - kexec-tools
+    - sos
+    - psacct
+    - docker
+    - skopeo
+  register: install_result
+
+- name: Reboot immediately if there was a change.
+  shell: "sleep 5 && reboot"
+  async: 1
+  poll: 0
+  when: upgrade_result is changed or install_result is changed
+
+- name: Wait for the reboot to complete if there was a change.
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 5
+    timeout: 300
+  when: upgrade_result is changed or install_result is changed
+
+- name: Start and enable docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+  
+
+
